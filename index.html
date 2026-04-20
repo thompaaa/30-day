@@ -1,0 +1,237 @@
+<!DOCTYPE html>
+<html lang="sv">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Styrka på mattan – 30 dagar</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: Georgia, serif; background: #faf9f7; min-height: 100vh; padding-bottom: 60px; }
+
+    #header { background: #1a1a1a; color: #fff; padding: 32px 20px 28px; text-align: center; }
+    #header .eyebrow { font-size: 11px; letter-spacing: 4px; text-transform: uppercase; color: #aaa; margin-bottom: 8px; }
+    #header h1 { font-size: 28px; font-weight: 700; letter-spacing: -0.5px; }
+    #header p { margin-top: 8px; color: #bbb; font-size: 14px; }
+
+    #progress-wrap { max-width: 340px; margin: 20px auto 0; }
+    #progress-labels { display: flex; justify-content: space-between; font-size: 12px; color: #ccc; margin-bottom: 6px; }
+    #progress-track { background: #333; border-radius: 99px; height: 8px; overflow: hidden; }
+    #progress-bar { height: 100%; border-radius: 99px; background: linear-gradient(90deg, #2d7a5e, #7a2d7a); transition: width 0.5s ease; }
+
+    #main { max-width: 500px; margin: 0 auto; padding: 0 16px; }
+
+    .week-section { margin-top: 28px; }
+    .week-label { font-size: 11px; letter-spacing: 3px; text-transform: uppercase; font-weight: 700; margin-bottom: 12px; padding-left: 2px; }
+
+    .day-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 6px; }
+    .day-btn {
+      border-radius: 10px; padding: 10px 4px 8px; cursor: pointer;
+      text-align: center; transition: all 0.2s; border: 2px solid #ddd; background: #fff;
+    }
+    .day-btn .lbl { font-size: 11px; color: #999; margin-bottom: 2px; }
+    .day-btn .num { font-size: 16px; font-weight: 700; color: #222; }
+    .day-btn .check { font-size: 14px; margin-top: 2px; }
+    .day-btn.done { color: #fff; }
+    .day-btn.done .lbl { color: rgba(255,255,255,0.6); }
+    .day-btn.done .num { color: #fff; }
+
+    .detail-panel {
+      margin-top: 12px; background: #fff; border: 1px solid #e8e8e8;
+      border-radius: 14px; padding: 20px 18px; box-shadow: 0 2px 12px rgba(0,0,0,0.04);
+    }
+    .detail-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 16px; }
+    .detail-day-label { font-size: 12px; color: #999; letter-spacing: 1px; text-transform: uppercase; }
+    .detail-focus { font-size: 18px; font-weight: 700; color: #1a1a1a; margin-top: 2px; }
+    .mark-btn {
+      border-radius: 8px; padding: 6px 14px; cursor: pointer;
+      font-size: 13px; font-weight: 600; transition: all 0.2s; border-width: 2px; border-style: solid;
+    }
+
+    .exercises { display: flex; flex-direction: column; gap: 10px; }
+    .exercise { background: #faf9f7; border-radius: 10px; padding: 12px 14px; border-left: 3px solid; }
+    .exercise-row { display: flex; justify-content: space-between; align-items: center; }
+    .exercise-name { font-weight: 600; font-size: 15px; color: #1a1a1a; }
+    .exercise-sets { border-radius: 6px; padding: 2px 10px; font-size: 13px; font-weight: 600; }
+    .exercise-tip { font-size: 13px; color: #777; margin-top: 4px; }
+
+    #done-banner {
+      display: none; margin-top: 32px; background: #1a1a1a; border-radius: 16px;
+      padding: 28px 24px; text-align: center; color: #fff;
+    }
+    #done-banner .trophy { font-size: 40px; margin-bottom: 12px; }
+    #done-banner h2 { font-size: 20px; font-weight: 700; }
+    #done-banner p { color: #bbb; margin-top: 8px; font-size: 14px; }
+  </style>
+</head>
+<body>
+
+<div id="header">
+  <div class="eyebrow">30-dagars program</div>
+  <h1>Styrka på mattan</h1>
+  <p>Utan vikter · 10–15 min/dag · Lite erfarenhet</p>
+  <div id="progress-wrap">
+    <div id="progress-labels">
+      <span>Framsteg</span>
+      <span id="progress-text">0 / 30 dagar</span>
+    </div>
+    <div id="progress-track"><div id="progress-bar" style="width:0%"></div></div>
+  </div>
+</div>
+
+<div id="main"></div>
+
+<script>
+const STORAGE_KEY = "traning30_completed";
+
+const program = [
+  { day:1,  focus:"Helkropp",      exercises:[{name:"Knäböj",sets:"3×10",tip:"Fötterna axelbrett, knän utåt"},{name:"Push-ups",sets:"3×8",tip:"Rak kropp, armbågar 45°"},{name:"Plankan",sets:"3×20s",tip:"Spänn magen, andas"}] },
+  { day:2,  focus:"Ben & Core",    exercises:[{name:"Utfallssteg",sets:"3×8/ben",tip:"Knät rakt ovanför tån"},{name:"Höftlyft (glute bridge)",sets:"3×12",tip:"Kläm sätesmusklerna i topp"},{name:"Cykelcrunches",sets:"3×12/sida",tip:"Kontrollerat tempo"}] },
+  { day:3,  focus:"Överkropp",     exercises:[{name:"Push-ups",sets:"3×10",tip:"Fullt rörelseomfång"},{name:"Supermans",sets:"3×10",tip:"Håll 2 sek i topp"},{name:"Dips på golvet",sets:"3×10",tip:"Fingrar framåt"}] },
+  { day:4,  focus:"Ben & Rörlighet",exercises:[{name:"Sumoknäböj",sets:"3×12",tip:"Brett ben, tår ut 45°"},{name:"Stående höftvippar",sets:"3×15",tip:"Håll balansen"},{name:"Cat-cow stretch",sets:"3×10",tip:"Andas med rörelsen"}] },
+  { day:5,  focus:"Helkropp",      exercises:[{name:"Knäböj",sets:"3×12",tip:"Djupare än igår"},{name:"Push-ups",sets:"3×10",tip:"Fokus på nedgång 3 sek"},{name:"Plankan",sets:"3×25s",tip:"+5s sedan dag 1"}] },
+  { day:6,  focus:"Core & Balans", exercises:[{name:"Dead bug",sets:"3×8/sida",tip:"Rygg mot mattan hela tiden"},{name:"Sidoplanka",sets:"3×15s/sida",tip:"Höften upp, rak linje"},{name:"Fågelhand",sets:"3×8/sida",tip:"Stabilt och kontrollerat"}] },
+  { day:7,  focus:"Aktiv vila",    exercises:[{name:"Pigeon pose",sets:"2×45s/sida",tip:"Andas djupt, slappna av"},{name:"Kattrygg + Kobra",sets:"2×10",tip:"Mjuka, flytande rörelser"},{name:"Promenad 10 min",sets:"—",tip:"Fritt tempo, frisk luft"}] },
+  { day:8,  focus:"Helkropp",      exercises:[{name:"Knäböj",sets:"4×10",tip:"En extra set jämfört v1"},{name:"Push-ups",sets:"3×12",tip:"Håll tempo"},{name:"Plankan",sets:"3×30s",tip:"Andas kontrollerat"}] },
+  { day:9,  focus:"Ben",           exercises:[{name:"Enbensknäböj (assisterat)",sets:"3×6/ben",tip:"Håll i vägg om nödvändigt"},{name:"Höftlyft",sets:"3×15",tip:"Fot närmre sätena"},{name:"Calf raises",sets:"3×15",tip:"Fullt rörelseomfång"}] },
+  { day:10, focus:"Överkropp",     exercises:[{name:"Breda push-ups",sets:"3×10",tip:"Händer bredare än axlar"},{name:"Nära push-ups (triceps)",sets:"3×8",tip:"Armbågar längs kroppen"},{name:"Supermans",sets:"3×12",tip:"Håll 3 sek i topp"}] },
+  { day:11, focus:"Core",          exercises:[{name:"Plankan",sets:"4×30s",tip:"4 sets nu!"},{name:"Cykelcrunches",sets:"3×15/sida",tip:"Kontrollerat, inte fort"},{name:"Reverse crunch",sets:"3×12",tip:"Lyft höften, inte benen"}] },
+  { day:12, focus:"Helkropp",      exercises:[{name:"Burpees (modifierade)",sets:"3×6",tip:"Ta bort hoppet om nödvändigt"},{name:"Knäböj",sets:"3×15",tip:"Ökad volym"},{name:"Push-ups",sets:"3×12",tip:"Fokus på bröst"}] },
+  { day:13, focus:"Ben & Core",    exercises:[{name:"Utfallssteg gå",sets:"3×10/ben",tip:"Rörliga lunges"},{name:"Sidoplanka",sets:"3×20s/sida",tip:"+5s sedan v1"},{name:"Fågelhand",sets:"3×10/sida",tip:"Extra kontroll"}] },
+  { day:14, focus:"Aktiv vila",    exercises:[{name:"Yogaflöde (sol-hälsning)",sets:"3 varv",tip:"Ta din tid"},{name:"Hamstringstretch",sets:"2×45s/ben",tip:"Mjukt, inte forcera"},{name:"Promenad 15 min",sets:"—",tip:"Njut av det"}] },
+  { day:15, focus:"Styrka",        exercises:[{name:"Knäböj",sets:"4×12",tip:"Explosiv uppgång, kontrollerad nedgång"},{name:"Push-ups",sets:"4×10",tip:"4 set nu"},{name:"Plankan",sets:"3×40s",tip:"Fortskriden tid"}] },
+  { day:16, focus:"Ben",           exercises:[{name:"Sumoknäböj",sets:"4×12",tip:"Paus 2s i botten"},{name:"Höftlyft enben",sets:"3×8/ben",tip:"Stabilt bäcken"},{name:"Vadhopp",sets:"3×20",tip:"Explosivt"}] },
+  { day:17, focus:"Överkropp",     exercises:[{name:"Push-ups",sets:"4×12",tip:"Maxvolym hittills"},{name:"Pike push-ups",sets:"3×8",tip:"Belastar axlarna mer"},{name:"Dips",sets:"3×12",tip:"Kontrollerat ner"}] },
+  { day:18, focus:"Core & Balans", exercises:[{name:"Dead bug",sets:"4×10/sida",tip:"+2 reps/set"},{name:"Plankan med axeltouch",sets:"3×10/sida",tip:"Stabil höft"},{name:"V-sit",sets:"3×10s",tip:"Benen raka om möjligt"}] },
+  { day:19, focus:"Helkropp",      exercises:[{name:"Burpees",sets:"3×8",tip:"Med hopp om möjligt"},{name:"Utfallssteg",sets:"4×10/ben",tip:"Ökad volym"},{name:"Push-ups",sets:"3×15",tip:"Testa max sett"}] },
+  { day:20, focus:"Ben",           exercises:[{name:"Enbensknäböj",sets:"3×8/ben",tip:"Bättre balans nu?"},{name:"Glute bridge marsch",sets:"3×10/ben",tip:"Alternera ben i lyft"},{name:"Knäböj",sets:"3×20",tip:"Uthållighetsset"}] },
+  { day:21, focus:"Aktiv vila",    exercises:[{name:"Full-body stretch",sets:"15 min",tip:"Axlar, höfter, lår, rygg"},{name:"Djupandning",sets:"5 min",tip:"4-7-8 andning"},{name:"Promenad/jogg 20 min",sets:"—",tip:"Välj det som känns rätt"}] },
+  { day:22, focus:"Max styrka",    exercises:[{name:"Knäböj",sets:"5×10",tip:"5 set – nytt rekord"},{name:"Push-ups",sets:"4×15",tip:"Kontrollerat tempo"},{name:"Plankan",sets:"3×50s",tip:"Nästan 1 minut!"}] },
+  { day:23, focus:"Ben",           exercises:[{name:"Sumo + paus",sets:"4×10",tip:"3 sek paus i botten"},{name:"Enbensknäböj",sets:"3×10/ben",tip:"Du klarar det nu"},{name:"Calf raises enben",sets:"3×12/ben",tip:"Balans och styrka"}] },
+  { day:24, focus:"Överkropp",     exercises:[{name:"Push-ups",sets:"5×12",tip:"5 set!"},{name:"Pike push-ups",sets:"3×10",tip:"+2 reps"},{name:"Supermans",sets:"3×15",tip:"Håll 3 sek varje rep"}] },
+  { day:25, focus:"Core",          exercises:[{name:"Plankan",sets:"3×60s",tip:"Hela minuten!"},{name:"Cykelcrunches",sets:"4×20/sida",tip:"Maxvolym"},{name:"Sidoplanka",sets:"3×30s/sida",tip:"Dubbelt mot dag 1"}] },
+  { day:26, focus:"Helkropp",      exercises:[{name:"Burpees",sets:"4×8",tip:"Explosivt"},{name:"Knäböj",sets:"4×15",tip:"Stark och stadig"},{name:"Push-ups",sets:"4×12",tip:"Full kontroll"}] },
+  { day:27, focus:"Ben & Core",    exercises:[{name:"Utfallssteg",sets:"4×12/ben",tip:"Maxvolym lunges"},{name:"Glute bridge",sets:"4×15",tip:"Paus 2s i topp"},{name:"Dead bug",sets:"4×12/sida",tip:"Perfekt form"}] },
+  { day:28, focus:"Rörlighet",     exercises:[{name:"Djup knäböj stretch",sets:"3×45s",tip:"Håll med händerna"},{name:"Öppen höft (pigeon)",sets:"3×60s/sida",tip:"Ta dig tid"},{name:"Bröstöppning",sets:"3×30s",tip:"Armar ut, andas djupt"}] },
+  { day:29, focus:"Sista push",    exercises:[{name:"Knäböj",sets:"5×12",tip:"Allt du har"},{name:"Push-ups",sets:"5×15",tip:"Personrekord?"},{name:"Plankan",sets:"3×60s",tip:"En minut varje set"}] },
+  { day:30, focus:"Avslutning 🎉", exercises:[{name:"Valfri combo",sets:"3 varv",tip:"Välj dina 3 favoritövningar"},{name:"Stretch – full body",sets:"10 min",tip:"Tacka kroppen"},{name:"Reflektion",sets:"—",tip:"Jämför med dag 1 – du är starkare!"}] },
+];
+
+const weekAccents = ["#2d7a5e","#3a4fa3","#b05a1a","#7a2d7a"];
+const weekLabels  = ["Vecka 1 – Grundläggning","Vecka 2 – Progression","Vecka 3 – Intensifiering","Vecka 4 – Toppa formen"];
+
+// Load from localStorage
+let completed = {};
+try { completed = JSON.parse(localStorage.getItem(STORAGE_KEY) || "{}"); } catch(_) {}
+
+let openDay = null;
+
+function save() {
+  try { localStorage.setItem(STORAGE_KEY, JSON.stringify(completed)); } catch(_) {}
+}
+
+function totalDone() {
+  return Object.values(completed).filter(Boolean).length;
+}
+
+function updateProgress() {
+  const n = totalDone();
+  document.getElementById("progress-text").textContent = n + " / 30 dagar";
+  document.getElementById("progress-bar").style.width = (n / 30 * 100) + "%";
+  document.getElementById("done-banner").style.display = n === 30 ? "block" : "none";
+}
+
+function renderDay(d, wi) {
+  const accent = weekAccents[wi];
+  const done = !!completed[d.day];
+  const isOpen = openDay === d.day;
+
+  const btn = document.createElement("button");
+  btn.className = "day-btn" + (done ? " done" : "");
+  btn.style.background = done ? accent : "#fff";
+  btn.style.borderColor = done ? accent : "#ddd";
+  if (isOpen) btn.style.boxShadow = `0 0 0 3px ${accent}44`;
+  btn.innerHTML = `<div class="lbl">Dag</div><div class="num">${d.day}</div>${done ? '<div class="check">✓</div>' : ''}`;
+  btn.addEventListener("click", () => { openDay = isOpen ? null : d.day; render(); });
+  return btn;
+}
+
+function renderDetail(d, wi) {
+  const accent = weekAccents[wi];
+  const done = !!completed[d.day];
+
+  const panel = document.createElement("div");
+  panel.className = "detail-panel";
+
+  const markLabel = done ? "✓ Klar!" : "Markera klar";
+  panel.innerHTML = `
+    <div class="detail-header">
+      <div>
+        <div class="detail-day-label">Dag ${d.day}</div>
+        <div class="detail-focus">${d.focus}</div>
+      </div>
+      <button class="mark-btn" style="border-color:${accent};background:${done ? accent : 'transparent'};color:${done ? '#fff' : accent}">${markLabel}</button>
+    </div>
+    <div class="exercises">
+      ${d.exercises.map(ex => `
+        <div class="exercise" style="border-left-color:${accent}">
+          <div class="exercise-row">
+            <span class="exercise-name">${ex.name}</span>
+            <span class="exercise-sets" style="background:${accent}18;color:${accent}">${ex.sets}</span>
+          </div>
+          <div class="exercise-tip">💡 ${ex.tip}</div>
+        </div>
+      `).join("")}
+    </div>
+  `;
+
+  panel.querySelector(".mark-btn").addEventListener("click", () => {
+    completed[d.day] = !completed[d.day];
+    save();
+    render();
+    updateProgress();
+  });
+
+  return panel;
+}
+
+function render() {
+  const main = document.getElementById("main");
+  main.innerHTML = "";
+
+  [0,1,2,3].forEach(wi => {
+    const week = program.slice(wi*7, wi*7+7);
+    const section = document.createElement("div");
+    section.className = "week-section";
+
+    const label = document.createElement("div");
+    label.className = "week-label";
+    label.style.color = weekAccents[wi];
+    label.textContent = weekLabels[wi];
+    section.appendChild(label);
+
+    const grid = document.createElement("div");
+    grid.className = "day-grid";
+    week.forEach(d => grid.appendChild(renderDay(d, wi)));
+    section.appendChild(grid);
+
+    if (openDay && week.some(d => d.day === openDay)) {
+      const d = program.find(x => x.day === openDay);
+      section.appendChild(renderDetail(d, wi));
+    }
+
+    main.appendChild(section);
+  });
+
+  // Done banner
+  const banner = document.createElement("div");
+  banner.id = "done-banner";
+  banner.style.display = totalDone() === 30 ? "block" : "none";
+  banner.innerHTML = `<div class="trophy">🏆</div><h2>30 dagar avklarade!</h2><p>Du är starkare, mer stabil och mer disciplinerad än när du började.</p>`;
+  main.appendChild(banner);
+}
+
+render();
+updateProgress();
+</script>
+</body>
+</html>
