@@ -252,17 +252,14 @@ function resetTimer(key) {
 }
 
 function refreshTimer(key) {
-  const disp = document.getElementById("tmr-" + key);
-  if (!disp) return;
   const t = timerState[key];
-  if (!t) return;
-  const btn = document.getElementById("tmr-btn-" + key);
-  disp.textContent = t.secs >= 60
+  if (!t || !t.dispEl) return;
+  t.dispEl.textContent = t.secs >= 60
     ? Math.floor(t.secs / 60) + ":" + String(t.secs % 60).padStart(2, "0")
     : t.secs + "s";
   const pct = t.total > 0 ? t.secs / t.total : 1;
-  disp.style.color = t.secs <= 0 ? "#2d7a5e" : pct > 0.5 ? "#2d7a5e" : pct > 0.2 ? "#b05a1a" : "#c0392b";
-  btn.textContent = t.running ? "⏸" : "▶";
+  t.dispEl.style.color = t.secs <= 0 ? "#2d7a5e" : pct > 0.5 ? "#2d7a5e" : pct > 0.2 ? "#b05a1a" : "#c0392b";
+  if (t.btnEl) t.btnEl.textContent = t.running ? "⏸" : "▶";
 }
 
 function renderDay(d, wi) {
@@ -349,15 +346,15 @@ function renderDetail(d, wi) {
 
       const disp = document.createElement("span");
       disp.className = "timer-display";
-      disp.id = "tmr-" + key;
       disp.textContent = timerState[key].secs + "s";
+      timerState[key].dispEl = disp;
 
       const playBtn = document.createElement("button");
       playBtn.className = "timer-btn";
-      playBtn.id = "tmr-btn-" + key;
       playBtn.setAttribute("aria-label", "Starta");
       playBtn.textContent = timerState[key].running ? "⏸" : "▶";
       playBtn.addEventListener("click", () => toggleTimer(key, secs));
+      timerState[key].btnEl = playBtn;
 
       const rstBtn = document.createElement("button");
       rstBtn.className = "timer-reset";
