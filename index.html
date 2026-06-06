@@ -56,7 +56,8 @@
     .exercises { display: flex; flex-direction: column; gap: 10px; }
     .exercise { background: #faf9f7; border-radius: 10px; padding: 12px 14px; border-left: 3px solid; }
     .exercise-row { display: flex; justify-content: space-between; align-items: center; }
-    .exercise-name { font-weight: 600; font-size: 15px; color: #1a1a1a; }
+    .exercise-name { font-weight: 600; font-size: 15px; color: #1a1a1a; text-decoration: none; }
+    .exercise-name:hover { text-decoration: underline; }
     .exercise-sets { border-radius: 6px; padding: 2px 10px; font-size: 13px; font-weight: 600; }
     .exercise-tip { font-size: 13px; color: #777; margin-top: 4px; }
 
@@ -285,57 +286,94 @@ function renderDetail(d, wi) {
   const panel = document.createElement("div");
   panel.className = "detail-panel";
 
-  const exercisesHtml = d.exercises.map(ex => {
-    const secs = parseSeconds(ex.sets);
-    const key = timerKey(d.day, ex.name);
-    const timerHtml = secs ? `
-      <div class="timer-wrap">
-        <span class="timer-display" id="tmr-${key}">${secs}s</span>
-        <button class="timer-btn" id="tmr-btn-${key}" aria-label="Starta">▶</button>
-        <button class="timer-reset" id="tmr-rst-${key}" aria-label="Återställ" title="Återställ">↺</button>
-      </div>` : "";
-    return `
-      <div class="exercise" style="border-left-color:${accent}">
-        <div class="exercise-row">
-          <span class="exercise-name">${ex.name}</span>
-          <span class="exercise-sets" style="background:${accent}18;color:${accent}">${ex.sets}</span>
-        </div>
-        <div class="exercise-tip">💡 ${ex.tip}</div>
-        ${timerHtml}
-      </div>`;
-  }).join("");
-
-  panel.innerHTML = `
-    <div class="detail-header">
-      <div>
-        <div class="detail-day-label">Dag ${d.day}</div>
-        <div class="detail-focus">${d.focus}</div>
-      </div>
-      <button class="mark-btn" style="border-color:${accent};background:${done ? accent : 'transparent'};color:${done ? '#fff' : accent}">${done ? "✓ Klar!" : "Markera klar"}</button>
-    </div>
-    <div class="exercises">${exercisesHtml}</div>
-  `;
-
-  panel.querySelector(".mark-btn").addEventListener("click", () => {
+  // Header
+  const header = document.createElement("div");
+  header.className = "detail-header";
+  const titleDiv = document.createElement("div");
+  titleDiv.innerHTML = `<div class="detail-day-label">Dag ${d.day}</div><div class="detail-focus">${d.focus}</div>`;
+  const markBtn = document.createElement("button");
+  markBtn.className = "mark-btn";
+  markBtn.style.cssText = `border-color:${accent};background:${done ? accent : "transparent"};color:${done ? "#fff" : accent}`;
+  markBtn.textContent = done ? "✓ Klar!" : "Markera klar";
+  markBtn.addEventListener("click", () => {
     completed[d.day] = !completed[d.day];
     if (completed[d.day]) completedDates[d.day] = todayStr();
     else delete completedDates[d.day];
-    save();
-    render();
-    updateProgress();
+    save(); render(); updateProgress();
   });
+  header.appendChild(titleDiv);
+  header.appendChild(markBtn);
+  panel.appendChild(header);
+
+  // Exercises
+  const exercisesDiv = document.createElement("div");
+  exercisesDiv.className = "exercises";
 
   d.exercises.forEach(ex => {
+    const exDiv = document.createElement("div");
+    exDiv.className = "exercise";
+    exDiv.style.borderLeftColor = accent;
+
+    const row = document.createElement("div");
+    row.className = "exercise-row";
+
+    const nameLink = document.createElement("a");
+    nameLink.className = "exercise-name";
+    nameLink.href = "https://www.google.com/search?q=" + encodeURIComponent(ex.name);
+    nameLink.target = "_blank";
+    nameLink.rel = "noopener noreferrer";
+    nameLink.textContent = ex.name;
+
+    const setsSpan = document.createElement("span");
+    setsSpan.className = "exercise-sets";
+    setsSpan.style.cssText = `background:${accent}18;color:${accent}`;
+    setsSpan.textContent = ex.sets;
+
+    row.appendChild(nameLink);
+    row.appendChild(setsSpan);
+
+    const tip = document.createElement("div");
+    tip.className = "exercise-tip";
+    tip.textContent = "💡 " + ex.tip;
+
+    exDiv.appendChild(row);
+    exDiv.appendChild(tip);
+
     const secs = parseSeconds(ex.sets);
-    if (!secs) return;
-    const key = timerKey(d.day, ex.name);
-    if (!timerState[key]) timerState[key] = { secs, total: secs, running: false };
-    const btn = panel.querySelector("#tmr-btn-" + key);
-    const rst = panel.querySelector("#tmr-rst-" + key);
-    if (btn) btn.addEventListener("click", () => toggleTimer(key, secs));
-    if (rst) rst.addEventListener("click", () => resetTimer(key));
+    if (secs) {
+      const key = timerKey(d.day, ex.name);
+      if (!timerState[key]) timerState[key] = { secs, total: secs, running: false };
+
+      const wrap = document.createElement("div");
+      wrap.className = "timer-wrap";
+
+      const disp = document.createElement("span");
+      disp.className = "timer-display";
+      disp.id = "tmr-" + key;
+      disp.textContent = timerState[key].secs + "s";
+
+      const playBtn = document.createElement("button");
+      playBtn.className = "timer-btn";
+      playBtn.setAttribute("aria-label", "Starta");
+      playBtn.textContent = timerState[key].running ? "⏸" : "▶";
+      playBtn.addEventListener("click", () => toggleTimer(key, secs));
+
+      const rstBtn = document.createElement("button");
+      rstBtn.className = "timer-reset";
+      rstBtn.title = "Återställ";
+      rstBtn.textContent = "↺";
+      rstBtn.addEventListener("click", () => resetTimer(key));
+
+      wrap.appendChild(disp);
+      wrap.appendChild(playBtn);
+      wrap.appendChild(rstBtn);
+      exDiv.appendChild(wrap);
+    }
+
+    exercisesDiv.appendChild(exDiv);
   });
 
+  panel.appendChild(exercisesDiv);
   return panel;
 }
 
