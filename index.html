@@ -4,6 +4,9 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Styrka på mattan – 30 dagar</title>
+  <link rel="manifest" href="manifest.json">
+  <meta name="theme-color" content="#1a1a1a">
+  <link rel="apple-touch-icon" href="icon.svg">
   <style>
     * { box-sizing: border-box; margin: 0; padding: 0; }
     body { font-family: Georgia, serif; background: #faf9f7; min-height: 100vh; padding-bottom: 60px; }
@@ -17,6 +20,9 @@
     #progress-labels { display: flex; justify-content: space-between; font-size: 12px; color: #ccc; margin-bottom: 6px; }
     #progress-track { background: #333; border-radius: 99px; height: 8px; overflow: hidden; }
     #progress-bar { height: 100%; border-radius: 99px; background: linear-gradient(90deg, #2d7a5e, #7a2d7a); transition: width 0.5s ease; }
+
+    #streak-wrap { margin-top: 14px; font-size: 13px; color: #bbb; }
+    #streak-wrap strong { color: #fff; font-size: 17px; }
 
     #main { max-width: 500px; margin: 0 auto; padding: 0 16px; }
 
@@ -54,6 +60,25 @@
     .exercise-sets { border-radius: 6px; padding: 2px 10px; font-size: 13px; font-weight: 600; }
     .exercise-tip { font-size: 13px; color: #777; margin-top: 4px; }
 
+    .timer-wrap {
+      display: flex; align-items: center; gap: 10px;
+      margin-top: 10px; padding-top: 10px; border-top: 1px solid #eee;
+    }
+    .timer-display {
+      font-size: 24px; font-weight: 700; font-variant-numeric: tabular-nums;
+      min-width: 54px; color: #2d7a5e; transition: color 0.4s;
+    }
+    .timer-btn {
+      background: none; border: none; cursor: pointer;
+      font-size: 22px; padding: 0 4px; line-height: 1; transition: opacity 0.2s;
+    }
+    .timer-btn:hover { opacity: 0.65; }
+    .timer-reset {
+      background: none; border: none; cursor: pointer;
+      font-size: 17px; padding: 0 2px; color: #bbb; transition: color 0.2s;
+    }
+    .timer-reset:hover { color: #666; }
+
     #done-banner {
       display: none; margin-top: 32px; background: #1a1a1a; border-radius: 16px;
       padding: 28px 24px; text-align: center; color: #fff;
@@ -76,12 +101,16 @@
     </div>
     <div id="progress-track"><div id="progress-bar" style="width:0%"></div></div>
   </div>
+  <div id="streak-wrap" style="display:none">
+    🔥 <strong id="streak-val">0</strong> dag i rad
+  </div>
 </div>
 
 <div id="main"></div>
 
 <script>
 const STORAGE_KEY = "traning30_completed";
+const DATES_KEY   = "traning30_dates";
 
 const program = [
   { day:1,  focus:"Helkropp",      exercises:[{name:"Knäböj",sets:"3×10",tip:"Fötterna axelbrett, knän utåt"},{name:"Push-ups",sets:"3×8",tip:"Rak kropp, armbågar 45°"},{name:"Plankan",sets:"3×20s",tip:"Spänn magen, andas"}] },
@@ -119,14 +148,38 @@ const program = [
 const weekAccents = ["#2d7a5e","#3a4fa3","#b05a1a","#7a2d7a"];
 const weekLabels  = ["Vecka 1 – Grundläggning","Vecka 2 – Progression","Vecka 3 – Intensifiering","Vecka 4 – Toppa formen"];
 
-// Load from localStorage
 let completed = {};
-try { completed = JSON.parse(localStorage.getItem(STORAGE_KEY) || "{}"); } catch(_) {}
+let completedDates = {};
+try { completed      = JSON.parse(localStorage.getItem(STORAGE_KEY) || "{}"); } catch(_) {}
+try { completedDates = JSON.parse(localStorage.getItem(DATES_KEY)   || "{}"); } catch(_) {}
 
 let openDay = null;
+const timerState = {}; // key → { secs, total, running, interval }
 
 function save() {
-  try { localStorage.setItem(STORAGE_KEY, JSON.stringify(completed)); } catch(_) {}
+  try {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(completed));
+    localStorage.setItem(DATES_KEY,   JSON.stringify(completedDates));
+  } catch(_) {}
+}
+
+function todayStr() {
+  return new Date().toISOString().slice(0, 10);
+}
+
+function getStreak() {
+  const dates = [...new Set(Object.values(completedDates).filter(Boolean))].sort().reverse();
+  if (!dates.length) return 0;
+  const t = todayStr();
+  const y = new Date(Date.now() - 86400000).toISOString().slice(0, 10);
+  if (dates[0] !== t && dates[0] !== y) return 0;
+  let streak = 1;
+  for (let i = 1; i < dates.length; i++) {
+    const diff = (new Date(dates[i - 1]) - new Date(dates[i])) / 86400000;
+    if (diff === 1) streak++;
+    else break;
+  }
+  return streak;
 }
 
 function totalDone() {
@@ -138,6 +191,66 @@ function updateProgress() {
   document.getElementById("progress-text").textContent = n + " / 30 dagar";
   document.getElementById("progress-bar").style.width = (n / 30 * 100) + "%";
   document.getElementById("done-banner").style.display = n === 30 ? "block" : "none";
+  const streak = getStreak();
+  const sw = document.getElementById("streak-wrap");
+  const sv = document.getElementById("streak-val");
+  if (sw && sv) { sv.textContent = streak; sw.style.display = streak > 0 ? "block" : "none"; }
+}
+
+// --- Timer ---
+
+function parseSeconds(sets) {
+  const m = sets.match(/(\d+)s/);
+  return m ? parseInt(m[1]) : null;
+}
+
+function timerKey(day, name) {
+  return day + "-" + name.replace(/[^\wåäöÅÄÖ]/g, "_");
+}
+
+function toggleTimer(key, totalSecs) {
+  if (!timerState[key]) timerState[key] = { secs: totalSecs, total: totalSecs, running: false };
+  const t = timerState[key];
+  if (t.running) {
+    clearInterval(t.interval);
+    t.running = false;
+  } else {
+    if (t.secs <= 0) t.secs = t.total;
+    t.running = true;
+    t.interval = setInterval(() => {
+      t.secs--;
+      refreshTimer(key);
+      if (t.secs <= 0) {
+        clearInterval(t.interval);
+        t.running = false;
+        if (navigator.vibrate) navigator.vibrate([200, 100, 200]);
+      }
+    }, 1000);
+  }
+  refreshTimer(key);
+}
+
+function resetTimer(key) {
+  const t = timerState[key];
+  if (!t) return;
+  clearInterval(t.interval);
+  t.secs = t.total;
+  t.running = false;
+  refreshTimer(key);
+}
+
+function refreshTimer(key) {
+  const disp = document.getElementById("tmr-" + key);
+  const btn  = document.getElementById("tmr-btn-" + key);
+  if (!disp || !btn) return;
+  const t = timerState[key];
+  if (!t) return;
+  disp.textContent = t.secs >= 60
+    ? Math.floor(t.secs / 60) + ":" + String(t.secs % 60).padStart(2, "0")
+    : t.secs + "s";
+  const pct = t.total > 0 ? t.secs / t.total : 1;
+  disp.style.color = t.secs <= 0 ? "#2d7a5e" : pct > 0.5 ? "#2d7a5e" : pct > 0.2 ? "#b05a1a" : "#c0392b";
+  btn.textContent = t.running ? "⏸" : "▶";
 }
 
 function renderDay(d, wi) {
@@ -158,37 +271,59 @@ function renderDay(d, wi) {
 function renderDetail(d, wi) {
   const accent = weekAccents[wi];
   const done = !!completed[d.day];
-
   const panel = document.createElement("div");
   panel.className = "detail-panel";
 
-  const markLabel = done ? "✓ Klar!" : "Markera klar";
+  const exercisesHtml = d.exercises.map(ex => {
+    const secs = parseSeconds(ex.sets);
+    const key = timerKey(d.day, ex.name);
+    const timerHtml = secs ? `
+      <div class="timer-wrap">
+        <span class="timer-display" id="tmr-${key}">${secs}s</span>
+        <button class="timer-btn" id="tmr-btn-${key}" aria-label="Starta">▶</button>
+        <button class="timer-reset" id="tmr-rst-${key}" aria-label="Återställ" title="Återställ">↺</button>
+      </div>` : "";
+    return `
+      <div class="exercise" style="border-left-color:${accent}">
+        <div class="exercise-row">
+          <span class="exercise-name">${ex.name}</span>
+          <span class="exercise-sets" style="background:${accent}18;color:${accent}">${ex.sets}</span>
+        </div>
+        <div class="exercise-tip">💡 ${ex.tip}</div>
+        ${timerHtml}
+      </div>`;
+  }).join("");
+
   panel.innerHTML = `
     <div class="detail-header">
       <div>
         <div class="detail-day-label">Dag ${d.day}</div>
         <div class="detail-focus">${d.focus}</div>
       </div>
-      <button class="mark-btn" style="border-color:${accent};background:${done ? accent : 'transparent'};color:${done ? '#fff' : accent}">${markLabel}</button>
+      <button class="mark-btn" style="border-color:${accent};background:${done ? accent : 'transparent'};color:${done ? '#fff' : accent}">${done ? "✓ Klar!" : "Markera klar"}</button>
     </div>
-    <div class="exercises">
-      ${d.exercises.map(ex => `
-        <div class="exercise" style="border-left-color:${accent}">
-          <div class="exercise-row">
-            <span class="exercise-name">${ex.name}</span>
-            <span class="exercise-sets" style="background:${accent}18;color:${accent}">${ex.sets}</span>
-          </div>
-          <div class="exercise-tip">💡 ${ex.tip}</div>
-        </div>
-      `).join("")}
-    </div>
+    <div class="exercises">${exercisesHtml}</div>
   `;
 
   panel.querySelector(".mark-btn").addEventListener("click", () => {
     completed[d.day] = !completed[d.day];
+    if (completed[d.day]) completedDates[d.day] = todayStr();
+    else delete completedDates[d.day];
     save();
     render();
     updateProgress();
+  });
+
+  d.exercises.forEach(ex => {
+    const secs = parseSeconds(ex.sets);
+    if (!secs) return;
+    const key = timerKey(d.day, ex.name);
+    if (!timerState[key]) timerState[key] = { secs, total: secs, running: false };
+    refreshTimer(key);
+    const btn = document.getElementById("tmr-btn-" + key);
+    const rst = document.getElementById("tmr-rst-" + key);
+    if (btn) btn.addEventListener("click", () => toggleTimer(key, secs));
+    if (rst) rst.addEventListener("click", () => resetTimer(key));
   });
 
   return panel;
@@ -232,6 +367,10 @@ function render() {
 
 render();
 updateProgress();
+
+if ("serviceWorker" in navigator) {
+  navigator.serviceWorker.register("sw.js").catch(() => {});
+}
 </script>
 </body>
 </html>
