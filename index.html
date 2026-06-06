@@ -330,9 +330,8 @@ function renderDetail(d, wi) {
     if (!secs) return;
     const key = timerKey(d.day, ex.name);
     if (!timerState[key]) timerState[key] = { secs, total: secs, running: false };
-    refreshTimer(key);
-    const btn = document.getElementById("tmr-btn-" + key);
-    const rst = document.getElementById("tmr-rst-" + key);
+    const btn = panel.querySelector("#tmr-btn-" + key);
+    const rst = panel.querySelector("#tmr-rst-" + key);
     if (btn) btn.addEventListener("click", () => toggleTimer(key, secs));
     if (rst) rst.addEventListener("click", () => resetTimer(key));
   });
