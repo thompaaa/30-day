@@ -253,10 +253,10 @@ function resetTimer(key) {
 
 function refreshTimer(key) {
   const disp = document.getElementById("tmr-" + key);
-  const btn  = document.getElementById("tmr-btn-" + key);
-  if (!disp || !btn) return;
+  if (!disp) return;
   const t = timerState[key];
   if (!t) return;
+  const btn = document.getElementById("tmr-btn-" + key);
   disp.textContent = t.secs >= 60
     ? Math.floor(t.secs / 60) + ":" + String(t.secs % 60).padStart(2, "0")
     : t.secs + "s";
@@ -354,6 +354,7 @@ function renderDetail(d, wi) {
 
       const playBtn = document.createElement("button");
       playBtn.className = "timer-btn";
+      playBtn.id = "tmr-btn-" + key;
       playBtn.setAttribute("aria-label", "Starta");
       playBtn.textContent = timerState[key].running ? "⏸" : "▶";
       playBtn.addEventListener("click", () => toggleTimer(key, secs));
