@@ -86,6 +86,14 @@
     #done-banner .trophy { font-size: 40px; margin-bottom: 12px; }
     #done-banner h2 { font-size: 20px; font-weight: 700; }
     #done-banner p { color: #bbb; margin-top: 8px; font-size: 14px; }
+
+    #reset-wrap { text-align: center; margin-top: 40px; }
+    #reset-btn {
+      background: none; border: none; cursor: pointer;
+      font-size: 12px; color: #bbb; text-decoration: underline;
+      font-family: Georgia, serif; transition: color 0.2s;
+    }
+    #reset-btn:hover { color: #c0392b; }
   </style>
 </head>
 <body>
@@ -107,6 +115,9 @@
 </div>
 
 <div id="main"></div>
+<div id="reset-wrap">
+  <button id="reset-btn">Nollställ framsteg</button>
+</div>
 
 <script>
 const STORAGE_KEY = "traning30_completed";
@@ -364,6 +375,17 @@ function render() {
   banner.innerHTML = `<div class="trophy">🏆</div><h2>30 dagar avklarade!</h2><p>Du är starkare, mer stabil och mer disciplinerad än när du började.</p>`;
   main.appendChild(banner);
 }
+
+document.getElementById("reset-btn").addEventListener("click", () => {
+  if (!confirm("Nollställ alla 30 dagar? Det går inte att ångra.")) return;
+  completed = {};
+  completedDates = {};
+  openDay = null;
+  Object.keys(timerState).forEach(k => { clearInterval(timerState[k].interval); delete timerState[k]; });
+  save();
+  render();
+  updateProgress();
+});
 
 render();
 updateProgress();
