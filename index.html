@@ -61,6 +61,15 @@
     .exercise-sets { border-radius: 6px; padding: 2px 10px; font-size: 13px; font-weight: 600; }
     .exercise-tip { font-size: 13px; color: #777; margin-top: 4px; }
 
+    .skill-heading {
+      font-size: 12px; letter-spacing: 1px; text-transform: uppercase; font-weight: 700;
+      color: #999; margin: 18px 0 10px; padding-top: 14px; border-top: 1px dashed #e8e8e8;
+    }
+    .skill-badge {
+      display: inline-block; border-radius: 6px; padding: 1px 8px; font-size: 11px;
+      font-weight: 700; letter-spacing: 0.5px; margin-top: 4px;
+    }
+
     .timer-wrap {
       display: flex; align-items: center; gap: 10px;
       margin-top: 10px; padding-top: 10px; border-top: 1px solid #eee;
@@ -125,36 +134,36 @@ const STORAGE_KEY = "traning30_completed";
 const DATES_KEY   = "traning30_dates";
 
 const program = [
-  { day:1,  focus:"Helkropp",      exercises:[{name:"Knäböj",sets:"3×10",tip:"Fötterna axelbrett, knän utåt"},{name:"Push-ups",sets:"3×8",tip:"Rak kropp, armbågar 45°"},{name:"Plankan",sets:"3×20s",tip:"Spänn magen, andas"}] },
-  { day:2,  focus:"Ben & Core",    exercises:[{name:"Utfallssteg",sets:"3×8/ben",tip:"Knät rakt ovanför tån"},{name:"Höftlyft (glute bridge)",sets:"3×12",tip:"Kläm sätesmusklerna i topp"},{name:"Cykelcrunches",sets:"3×12/sida",tip:"Kontrollerat tempo"}] },
-  { day:3,  focus:"Överkropp",     exercises:[{name:"Push-ups",sets:"3×10",tip:"Fullt rörelseomfång"},{name:"Supermans",sets:"3×10",tip:"Håll 2 sek i topp"},{name:"Dips på golvet",sets:"3×10",tip:"Fingrar framåt"}] },
-  { day:4,  focus:"Ben & Rörlighet",exercises:[{name:"Sumoknäböj",sets:"3×12",tip:"Brett ben, tår ut 45°"},{name:"Stående höftvippar",sets:"3×15",tip:"Håll balansen"},{name:"Cat-cow stretch",sets:"3×10",tip:"Andas med rörelsen"}] },
-  { day:5,  focus:"Helkropp",      exercises:[{name:"Knäböj",sets:"3×12",tip:"Djupare än igår"},{name:"Push-ups",sets:"3×10",tip:"Fokus på nedgång 3 sek"},{name:"Plankan",sets:"3×25s",tip:"+5s sedan dag 1"}] },
-  { day:6,  focus:"Core & Balans", exercises:[{name:"Dead bug",sets:"3×8/sida",tip:"Rygg mot mattan hela tiden"},{name:"Sidoplanka",sets:"3×15s/sida",tip:"Höften upp, rak linje"},{name:"Fågelhand",sets:"3×8/sida",tip:"Stabilt och kontrollerat"}] },
-  { day:7,  focus:"Aktiv vila",    exercises:[{name:"Pigeon pose",sets:"2×45s/sida",tip:"Andas djupt, slappna av"},{name:"Kattrygg + Kobra",sets:"2×10",tip:"Mjuka, flytande rörelser"},{name:"Promenad 10 min",sets:"—",tip:"Fritt tempo, frisk luft"}] },
-  { day:8,  focus:"Helkropp",      exercises:[{name:"Knäböj",sets:"4×10",tip:"En extra set jämfört v1"},{name:"Push-ups",sets:"3×12",tip:"Håll tempo"},{name:"Plankan",sets:"3×30s",tip:"Andas kontrollerat"}] },
-  { day:9,  focus:"Ben",           exercises:[{name:"Enbensknäböj (assisterat)",sets:"3×6/ben",tip:"Håll i vägg om nödvändigt"},{name:"Höftlyft",sets:"3×15",tip:"Fot närmre sätena"},{name:"Calf raises",sets:"3×15",tip:"Fullt rörelseomfång"}] },
-  { day:10, focus:"Överkropp",     exercises:[{name:"Breda push-ups",sets:"3×10",tip:"Händer bredare än axlar"},{name:"Nära push-ups (triceps)",sets:"3×8",tip:"Armbågar längs kroppen"},{name:"Supermans",sets:"3×12",tip:"Håll 3 sek i topp"}] },
-  { day:11, focus:"Core",          exercises:[{name:"Plankan",sets:"4×30s",tip:"4 sets nu!"},{name:"Cykelcrunches",sets:"3×15/sida",tip:"Kontrollerat, inte fort"},{name:"Reverse crunch",sets:"3×12",tip:"Lyft höften, inte benen"}] },
-  { day:12, focus:"Helkropp",      exercises:[{name:"Burpees (modifierade)",sets:"3×6",tip:"Ta bort hoppet om nödvändigt"},{name:"Knäböj",sets:"3×15",tip:"Ökad volym"},{name:"Push-ups",sets:"3×12",tip:"Fokus på bröst"}] },
-  { day:13, focus:"Ben & Core",    exercises:[{name:"Utfallssteg gå",sets:"3×10/ben",tip:"Rörliga lunges"},{name:"Sidoplanka",sets:"3×20s/sida",tip:"+5s sedan v1"},{name:"Fågelhand",sets:"3×10/sida",tip:"Extra kontroll"}] },
-  { day:14, focus:"Aktiv vila",    exercises:[{name:"Yogaflöde (sol-hälsning)",sets:"3 varv",tip:"Ta din tid"},{name:"Hamstringstretch",sets:"2×45s/ben",tip:"Mjukt, inte forcera"},{name:"Promenad 15 min",sets:"—",tip:"Njut av det"}] },
-  { day:15, focus:"Styrka",        exercises:[{name:"Knäböj",sets:"4×12",tip:"Explosiv uppgång, kontrollerad nedgång"},{name:"Push-ups",sets:"4×10",tip:"4 set nu"},{name:"Plankan",sets:"3×40s",tip:"Fortskriden tid"}] },
-  { day:16, focus:"Ben",           exercises:[{name:"Sumoknäböj",sets:"4×12",tip:"Paus 2s i botten"},{name:"Höftlyft enben",sets:"3×8/ben",tip:"Stabilt bäcken"},{name:"Vadhopp",sets:"3×20",tip:"Explosivt"}] },
-  { day:17, focus:"Överkropp",     exercises:[{name:"Push-ups",sets:"4×12",tip:"Maxvolym hittills"},{name:"Pike push-ups",sets:"3×8",tip:"Belastar axlarna mer"},{name:"Dips",sets:"3×12",tip:"Kontrollerat ner"}] },
-  { day:18, focus:"Core & Balans", exercises:[{name:"Dead bug",sets:"4×10/sida",tip:"+2 reps/set"},{name:"Plankan med axeltouch",sets:"3×10/sida",tip:"Stabil höft"},{name:"V-sit",sets:"3×10s",tip:"Benen raka om möjligt"}] },
-  { day:19, focus:"Helkropp",      exercises:[{name:"Burpees",sets:"3×8",tip:"Med hopp om möjligt"},{name:"Utfallssteg",sets:"4×10/ben",tip:"Ökad volym"},{name:"Push-ups",sets:"3×15",tip:"Testa max sett"}] },
-  { day:20, focus:"Ben",           exercises:[{name:"Enbensknäböj",sets:"3×8/ben",tip:"Bättre balans nu?"},{name:"Glute bridge marsch",sets:"3×10/ben",tip:"Alternera ben i lyft"},{name:"Knäböj",sets:"3×20",tip:"Uthållighetsset"}] },
-  { day:21, focus:"Aktiv vila",    exercises:[{name:"Full-body stretch",sets:"15 min",tip:"Axlar, höfter, lår, rygg"},{name:"Djupandning",sets:"5 min",tip:"4-7-8 andning"},{name:"Promenad/jogg 20 min",sets:"—",tip:"Välj det som känns rätt"}] },
-  { day:22, focus:"Max styrka",    exercises:[{name:"Knäböj",sets:"5×10",tip:"5 set – nytt rekord"},{name:"Push-ups",sets:"4×15",tip:"Kontrollerat tempo"},{name:"Plankan",sets:"3×50s",tip:"Nästan 1 minut!"}] },
-  { day:23, focus:"Ben",           exercises:[{name:"Sumo + paus",sets:"4×10",tip:"3 sek paus i botten"},{name:"Enbensknäböj",sets:"3×10/ben",tip:"Du klarar det nu"},{name:"Calf raises enben",sets:"3×12/ben",tip:"Balans och styrka"}] },
-  { day:24, focus:"Överkropp",     exercises:[{name:"Push-ups",sets:"5×12",tip:"5 set!"},{name:"Pike push-ups",sets:"3×10",tip:"+2 reps"},{name:"Supermans",sets:"3×15",tip:"Håll 3 sek varje rep"}] },
-  { day:25, focus:"Core",          exercises:[{name:"Plankan",sets:"3×60s",tip:"Hela minuten!"},{name:"Cykelcrunches",sets:"4×20/sida",tip:"Maxvolym"},{name:"Sidoplanka",sets:"3×30s/sida",tip:"Dubbelt mot dag 1"}] },
-  { day:26, focus:"Helkropp",      exercises:[{name:"Burpees",sets:"4×8",tip:"Explosivt"},{name:"Knäböj",sets:"4×15",tip:"Stark och stadig"},{name:"Push-ups",sets:"4×12",tip:"Full kontroll"}] },
-  { day:27, focus:"Ben & Core",    exercises:[{name:"Utfallssteg",sets:"4×12/ben",tip:"Maxvolym lunges"},{name:"Glute bridge",sets:"4×15",tip:"Paus 2s i topp"},{name:"Dead bug",sets:"4×12/sida",tip:"Perfekt form"}] },
-  { day:28, focus:"Rörlighet",     exercises:[{name:"Djup knäböj stretch",sets:"3×45s",tip:"Håll med händerna"},{name:"Öppen höft (pigeon)",sets:"3×60s/sida",tip:"Ta dig tid"},{name:"Bröstöppning",sets:"3×30s",tip:"Armar ut, andas djupt"}] },
-  { day:29, focus:"Sista push",    exercises:[{name:"Knäböj",sets:"5×12",tip:"Allt du har"},{name:"Push-ups",sets:"5×15",tip:"Personrekord?"},{name:"Plankan",sets:"3×60s",tip:"En minut varje set"}] },
-  { day:30, focus:"Avslutning 🎉", exercises:[{name:"Valfri combo",sets:"3 varv",tip:"Välj dina 3 favoritövningar"},{name:"Stretch – full body",sets:"10 min",tip:"Tacka kroppen"},{name:"Reflektion",sets:"—",tip:"Jämför med dag 1 – du är starkare!"}] },
+  { day:1,  focus:"Helkropp",      exercises:[{name:"Knäböj",sets:"3×10",tip:"Fötterna axelbrett, knän utåt"},{name:"Push-ups",sets:"3×8",tip:"Rak kropp, armbågar 45°"},{name:"Plankan",sets:"3×20s",tip:"Spänn magen, andas"}], skill:{name:"Assisterad pistol squat",sets:"3×5/ben",tip:"Håll i en stol för balans, sänk kontrollerat",track:"PISTOL SQUAT"} },
+  { day:2,  focus:"Ben & Core",    exercises:[{name:"Utfallssteg",sets:"3×8/ben",tip:"Knät rakt ovanför tån"},{name:"Höftlyft (glute bridge)",sets:"3×12",tip:"Kläm sätesmusklerna i topp"},{name:"Cykelcrunches",sets:"3×12/sida",tip:"Kontrollerat tempo"}], skill:{name:"Box-pistol (låg bänk)",sets:"3×6/ben",tip:"Sikta på att knappt nudda bänken",track:"PISTOL SQUAT"} },
+  { day:3,  focus:"Överkropp",     exercises:[{name:"Push-ups",sets:"3×10",tip:"Fullt rörelseomfång"},{name:"Supermans",sets:"3×10",tip:"Håll 2 sek i topp"},{name:"Dips på golvet",sets:"3×10",tip:"Fingrar framåt"}], skill:{name:"Wall walk",sets:"3×3",tip:"Gå upp mot väggen med händerna, stanna när kroppen är rak",track:"HANDSTÅENDE"} },
+  { day:4,  focus:"Ben & Rörlighet",exercises:[{name:"Sumoknäböj",sets:"3×12",tip:"Brett ben, tår ut 45°"},{name:"Stående höftvippar",sets:"3×15",tip:"Håll balansen"},{name:"Cat-cow stretch",sets:"3×10",tip:"Andas med rörelsen"}], skill:{name:"Rörlighet: djup knäböj + vrist",sets:"3×20s",tip:"Bygg rörlighet i vrist och höft – nyckeln till pistolen",track:"PISTOL SQUAT"} },
+  { day:5,  focus:"Helkropp",      exercises:[{name:"Knäböj",sets:"3×12",tip:"Djupare än igår"},{name:"Push-ups",sets:"3×10",tip:"Fokus på nedgång 3 sek"},{name:"Plankan",sets:"3×25s",tip:"+5s sedan dag 1"}], skill:{name:"Handstående mot vägg",sets:"3×15s",tip:"Håll kroppen rak, blicken mellan händerna",track:"HANDSTÅENDE"} },
+  { day:6,  focus:"Core & Balans", exercises:[{name:"Dead bug",sets:"3×8/sida",tip:"Rygg mot mattan hela tiden"},{name:"Sidoplanka",sets:"3×15s/sida",tip:"Höften upp, rak linje"},{name:"Fågelhand",sets:"3×8/sida",tip:"Stabilt och kontrollerat"}], skill:{name:"Tucked L-sit",sets:"3×10s",tip:"Tryck ifrån med raka armar, lyft höften",track:"L-SIT"} },
+  { day:7,  focus:"Aktiv vila",    exercises:[{name:"Pigeon pose",sets:"2×45s/sida",tip:"Andas djupt, slappna av"},{name:"Kattrygg + Kobra",sets:"2×10",tip:"Mjuka, flytande rörelser"},{name:"Promenad 10 min",sets:"—",tip:"Fritt tempo, frisk luft"}], skill:{name:"Mobilitet – vrist & axlar",sets:"2×10",tip:"Förbered kroppen för mer handstående nästa vecka",track:"MOBILITET"} },
+  { day:8,  focus:"Helkropp",      exercises:[{name:"Knäböj",sets:"4×10",tip:"En extra set jämfört v1"},{name:"Push-ups",sets:"3×12",tip:"Håll tempo"},{name:"Plankan",sets:"3×30s",tip:"Andas kontrollerat"}], skill:{name:"Box-pistol, lägre box",sets:"3×8/ben",tip:"Sänk boxen några cm sedan dag 2",track:"PISTOL SQUAT"} },
+  { day:9,  focus:"Ben",           exercises:[{name:"Enbensknäböj (assisterat)",sets:"3×6/ben",tip:"Håll i vägg om nödvändigt"},{name:"Höftlyft",sets:"3×15",tip:"Fot närmre sätena"},{name:"Calf raises",sets:"3×15",tip:"Fullt rörelseomfång"}], skill:{name:"Negativ pistol squat",sets:"3×5/ben",tip:"Fokusera på den långsamma nedgången",track:"PISTOL SQUAT"} },
+  { day:10, focus:"Överkropp",     exercises:[{name:"Breda push-ups",sets:"3×10",tip:"Händer bredare än axlar"},{name:"Nära push-ups (triceps)",sets:"3×8",tip:"Armbågar längs kroppen"},{name:"Supermans",sets:"3×12",tip:"Håll 3 sek i topp"}], skill:{name:"Handstående mot vägg",sets:"3×20s",tip:"Öka tiden med 5s sedan förra passet",track:"HANDSTÅENDE"} },
+  { day:11, focus:"Core",          exercises:[{name:"Plankan",sets:"4×30s",tip:"4 sets nu!"},{name:"Cykelcrunches",sets:"3×15/sida",tip:"Kontrollerat, inte fort"},{name:"Reverse crunch",sets:"3×12",tip:"Lyft höften, inte benen"}], skill:{name:"Tucked L-sit",sets:"3×15s",tip:"Öka tiden, andas normalt",track:"L-SIT"} },
+  { day:12, focus:"Helkropp",      exercises:[{name:"Burpees (modifierade)",sets:"3×6",tip:"Ta bort hoppet om nödvändigt"},{name:"Knäböj",sets:"3×15",tip:"Ökad volym"},{name:"Push-ups",sets:"3×12",tip:"Fokus på bröst"}], skill:{name:"Handstående, rygg mot vägg",sets:"3×15s",tip:"Svårare variant – bättre balansträning",track:"HANDSTÅENDE"} },
+  { day:13, focus:"Ben & Core",    exercises:[{name:"Utfallssteg gå",sets:"3×10/ben",tip:"Rörliga lunges"},{name:"Sidoplanka",sets:"3×20s/sida",tip:"+5s sedan v1"},{name:"Fågelhand",sets:"3×10/sida",tip:"Extra kontroll"}], skill:{name:"Negativ pistol squat, utan stöd i botten",sets:"3×6/ben",tip:"Släpp taget sista biten ner",track:"PISTOL SQUAT"} },
+  { day:14, focus:"Aktiv vila",    exercises:[{name:"Yogaflöde (sol-hälsning)",sets:"3 varv",tip:"Ta din tid"},{name:"Hamstringstretch",sets:"2×45s/ben",tip:"Mjukt, inte forcera"},{name:"Promenad 15 min",sets:"—",tip:"Njut av det"}], skill:{name:"Mobilitet – höft & hamstrings",sets:"2×45s/sida",tip:"Djup höftböjarstretch, viktig för pistolen",track:"MOBILITET"} },
+  { day:15, focus:"Styrka",        exercises:[{name:"Knäböj",sets:"4×12",tip:"Explosiv uppgång, kontrollerad nedgång"},{name:"Push-ups",sets:"4×10",tip:"4 set nu"},{name:"Plankan",sets:"3×40s",tip:"Fortskriden tid"}], skill:{name:"Halv L-sit (ett ben rakt)",sets:"3×8s/sida",tip:"Sträck ut ett ben i taget",track:"L-SIT"} },
+  { day:16, focus:"Ben",           exercises:[{name:"Sumoknäböj",sets:"4×12",tip:"Paus 2s i botten"},{name:"Höftlyft enben",sets:"3×8/ben",tip:"Stabilt bäcken"},{name:"Vadhopp",sets:"3×20",tip:"Explosivt"}], skill:{name:"Pistol squat, fingertoppsstöd mot vägg",sets:"3×6/ben",tip:"Bara en fingertopp mot väggen för balans",track:"PISTOL SQUAT"} },
+  { day:17, focus:"Överkropp",     exercises:[{name:"Push-ups",sets:"4×12",tip:"Maxvolym hittills"},{name:"Pike push-ups",sets:"3×8",tip:"Belastar axlarna mer"},{name:"Dips",sets:"3×12",tip:"Kontrollerat ner"}], skill:{name:"Pike push-ups (axelstyrka)",sets:"3×8",tip:"Höften högt, huvudet mot golvet",track:"HANDSTÅENDE"} },
+  { day:18, focus:"Core & Balans", exercises:[{name:"Dead bug",sets:"4×10/sida",tip:"+2 reps/set"},{name:"Plankan med axeltouch",sets:"3×10/sida",tip:"Stabil höft"},{name:"V-sit",sets:"3×10s",tip:"Benen raka om möjligt"}], skill:{name:"Halv L-sit (ett ben rakt)",sets:"3×12s/sida",tip:"Håll axlarna nedpressade",track:"L-SIT"} },
+  { day:19, focus:"Helkropp",      exercises:[{name:"Burpees",sets:"3×8",tip:"Med hopp om möjligt"},{name:"Utfallssteg",sets:"4×10/ben",tip:"Ökad volym"},{name:"Push-ups",sets:"3×15",tip:"Testa max sett"}], skill:{name:"Handstående, rygg mot vägg",sets:"3×25s",tip:"Testa att lyfta en hand kort stund",track:"HANDSTÅENDE"} },
+  { day:20, focus:"Ben",           exercises:[{name:"Enbensknäböj",sets:"3×8/ben",tip:"Bättre balans nu?"},{name:"Glute bridge marsch",sets:"3×10/ben",tip:"Alternera ben i lyft"},{name:"Knäböj",sets:"3×20",tip:"Uthållighetsset"}], skill:{name:"Pistol squat, minimalt stöd",sets:"3×5/ben",tip:"Du är nära – lita på benet",track:"PISTOL SQUAT"} },
+  { day:21, focus:"Aktiv vila",    exercises:[{name:"Full-body stretch",sets:"15 min",tip:"Axlar, höfter, lår, rygg"},{name:"Djupandning",sets:"5 min",tip:"4-7-8 andning"},{name:"Promenad/jogg 20 min",sets:"—",tip:"Välj det som känns rätt"}], skill:{name:"Hollow body hold",sets:"3×20s",tip:"Nedre ryggen i golvet, armar bakom huvudet",track:"MOBILITET"} },
+  { day:22, focus:"Max styrka",    exercises:[{name:"Knäböj",sets:"5×10",tip:"5 set – nytt rekord"},{name:"Push-ups",sets:"4×15",tip:"Kontrollerat tempo"},{name:"Plankan",sets:"3×50s",tip:"Nästan 1 minut!"}], skill:{name:"Pistol squat utan stöd",sets:"3×4/ben",tip:"Om du ramlar – försök igen, det är okej",track:"PISTOL SQUAT"} },
+  { day:23, focus:"Ben",           exercises:[{name:"Sumo + paus",sets:"4×10",tip:"3 sek paus i botten"},{name:"Enbensknäböj",sets:"3×10/ben",tip:"Du klarar det nu"},{name:"Calf raises enben",sets:"3×12/ben",tip:"Balans och styrka"}], skill:{name:"Pistol squat, fler reps",sets:"3×5/ben",tip:"Bygg uthållighet i rörelsen",track:"PISTOL SQUAT"} },
+  { day:24, focus:"Överkropp",     exercises:[{name:"Push-ups",sets:"5×12",tip:"5 set!"},{name:"Pike push-ups",sets:"3×10",tip:"+2 reps"},{name:"Supermans",sets:"3×15",tip:"Håll 3 sek varje rep"}], skill:{name:"Handstand push-up negativer mot vägg",sets:"3×5",tip:"Sänk kontrollerat i 3–4 sek",track:"HANDSTÅENDE"} },
+  { day:25, focus:"Core",          exercises:[{name:"Plankan",sets:"3×60s",tip:"Hela minuten!"},{name:"Cykelcrunches",sets:"4×20/sida",tip:"Maxvolym"},{name:"Sidoplanka",sets:"3×30s/sida",tip:"Dubbelt mot dag 1"}], skill:{name:"Full L-sit",sets:"3×5s",tip:"Bara några sekunder räcker – bygg därifrån",track:"L-SIT"} },
+  { day:26, focus:"Helkropp",      exercises:[{name:"Burpees",sets:"4×8",tip:"Explosivt"},{name:"Knäböj",sets:"4×15",tip:"Stark och stadig"},{name:"Push-ups",sets:"4×12",tip:"Full kontroll"}], skill:{name:"Full L-sit",sets:"3×8s",tip:"Du bygger core-styrka snabbt nu",track:"L-SIT"} },
+  { day:27, focus:"Ben & Core",    exercises:[{name:"Utfallssteg",sets:"4×12/ben",tip:"Maxvolym lunges"},{name:"Glute bridge",sets:"4×15",tip:"Paus 2s i topp"},{name:"Dead bug",sets:"4×12/sida",tip:"Perfekt form"}], skill:{name:"Full pistol squat – testa max reps",sets:"3×AMRAP/ben",tip:"Det här är dagen du visar vad du klarar",track:"PISTOL SQUAT"} },
+  { day:28, focus:"Rörlighet",     exercises:[{name:"Djup knäböj stretch",sets:"3×45s",tip:"Håll med händerna"},{name:"Öppen höft (pigeon)",sets:"3×60s/sida",tip:"Ta dig tid"},{name:"Bröstöppning",sets:"3×30s",tip:"Armar ut, andas djupt"}], skill:{name:"Helkropps skill-mobilitet",sets:"3×30s/övning",tip:"Sista finslipningen inför dag 29–30",track:"MOBILITET"} },
+  { day:29, focus:"Sista push",    exercises:[{name:"Knäböj",sets:"5×12",tip:"Allt du har"},{name:"Push-ups",sets:"5×15",tip:"Personrekord?"},{name:"Plankan",sets:"3×60s",tip:"En minut varje set"}], skill:{name:"Full L-sit – testa max hold",sets:"3×max",tip:"Se hur länge du kan hålla – notera tiden",track:"L-SIT"} },
+  { day:30, focus:"Avslutning 🎉", exercises:[{name:"Valfri combo",sets:"3 varv",tip:"Välj dina 3 favoritövningar"},{name:"Stretch – full body",sets:"10 min",tip:"Tacka kroppen"},{name:"Reflektion",sets:"—",tip:"Jämför med dag 1 – du är starkare!"}], skill:{name:"Visa din bästa skill (pistol/handstående/L-sit)",sets:"—",tip:"Filma gärna och jämför med dag 1",track:"FINAL"} },
 ];
 
 const weekAccents = ["#2d7a5e","#3a4fa3","#b05a1a","#7a2d7a"];
@@ -372,6 +381,84 @@ function renderDetail(d, wi) {
   });
 
   panel.appendChild(exercisesDiv);
+
+  // Skill (calisthenics-färdighet)
+  if (d.skill) {
+    const heading = document.createElement("div");
+    heading.className = "skill-heading";
+    heading.textContent = "🎯 Färdighetsträning";
+    panel.appendChild(heading);
+
+    const skillDiv = document.createElement("div");
+    skillDiv.className = "exercise";
+    skillDiv.style.borderLeftColor = accent;
+
+    const row = document.createElement("div");
+    row.className = "exercise-row";
+
+    const nameLink = document.createElement("a");
+    nameLink.className = "exercise-name";
+    nameLink.href = "https://www.google.com/search?q=" + encodeURIComponent(d.skill.name);
+    nameLink.target = "_blank";
+    nameLink.rel = "noopener noreferrer";
+    nameLink.textContent = d.skill.name;
+
+    const setsSpan = document.createElement("span");
+    setsSpan.className = "exercise-sets";
+    setsSpan.style.cssText = `background:${accent}18;color:${accent}`;
+    setsSpan.textContent = d.skill.sets;
+
+    row.appendChild(nameLink);
+    row.appendChild(setsSpan);
+
+    const badge = document.createElement("div");
+    badge.className = "skill-badge";
+    badge.style.cssText = `background:${accent}18;color:${accent}`;
+    badge.textContent = d.skill.track;
+
+    const tip = document.createElement("div");
+    tip.className = "exercise-tip";
+    tip.textContent = "💡 " + d.skill.tip;
+
+    skillDiv.appendChild(row);
+    skillDiv.appendChild(badge);
+    skillDiv.appendChild(tip);
+
+    const secs = parseSeconds(d.skill.sets);
+    if (secs) {
+      const key = timerKey(d.day, "skill-" + d.skill.name);
+      if (!timerState[key]) timerState[key] = { secs, total: secs, running: false };
+
+      const wrap = document.createElement("div");
+      wrap.className = "timer-wrap";
+
+      const disp = document.createElement("span");
+      disp.className = "timer-display";
+      disp.textContent = timerState[key].secs + "s";
+      timerState[key].dispEl = disp;
+
+      const playBtn = document.createElement("button");
+      playBtn.className = "timer-btn";
+      playBtn.setAttribute("aria-label", "Starta");
+      playBtn.textContent = timerState[key].running ? "⏸" : "▶";
+      playBtn.addEventListener("click", () => toggleTimer(key, secs));
+      timerState[key].btnEl = playBtn;
+
+      const rstBtn = document.createElement("button");
+      rstBtn.className = "timer-reset";
+      rstBtn.title = "Återställ";
+      rstBtn.textContent = "↺";
+      rstBtn.addEventListener("click", () => resetTimer(key));
+
+      wrap.appendChild(disp);
+      wrap.appendChild(playBtn);
+      wrap.appendChild(rstBtn);
+      skillDiv.appendChild(wrap);
+    }
+
+    panel.appendChild(skillDiv);
+  }
+
   return panel;
 }
 
@@ -379,8 +466,9 @@ function render() {
   const main = document.getElementById("main");
   main.innerHTML = "";
 
+  const weekBoundaries = [0, 7, 14, 21, 30];
   [0,1,2,3].forEach(wi => {
-    const week = program.slice(wi*7, wi*7+7);
+    const week = program.slice(weekBoundaries[wi], weekBoundaries[wi + 1]);
     const section = document.createElement("div");
     section.className = "week-section";
 
