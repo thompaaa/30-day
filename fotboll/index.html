@@ -1,0 +1,626 @@
+<!DOCTYPE html>
+<html lang="sv">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Fotbollsträning – planerare</title>
+  <link rel="manifest" href="manifest.json">
+  <meta name="theme-color" content="#1f5f3a">
+  <link rel="apple-touch-icon" href="icon.svg">
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: system-ui, -apple-system, "Segoe UI", Roboto, Arial, sans-serif;
+      background: #f3f3f3; color: #1a1a1a; min-height: 100vh; padding-bottom: 60px;
+    }
+    button { font-family: inherit; }
+
+    #header { background: #1f5f3a; color: #fff; padding: 28px 20px 24px; text-align: center; }
+    #header .eyebrow { font-size: 11px; letter-spacing: 4px; text-transform: uppercase; color: #b9dcc4; margin-bottom: 6px; }
+    #header h1 { font-size: 26px; font-weight: 700; }
+    #header p { margin-top: 6px; color: #d4eadb; font-size: 14px; }
+
+    #tabs { display: flex; max-width: 520px; margin: 0 auto; padding: 14px 16px 0; gap: 8px; }
+    .tab {
+      flex: 1; padding: 10px; border-radius: 10px; border: 2px solid #1f5f3a;
+      background: #fff; color: #1f5f3a; font-weight: 700; font-size: 14px; cursor: pointer;
+    }
+    .tab.active { background: #1f5f3a; color: #fff; }
+
+    #main { max-width: 520px; margin: 0 auto; padding: 0 16px; }
+
+    .section-label {
+      font-size: 11px; letter-spacing: 3px; text-transform: uppercase; font-weight: 700;
+      color: #5e5e5e; margin: 22px 0 10px 2px;
+    }
+
+    /* Veckodagar */
+    .day-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 6px; }
+    .day-btn {
+      border-radius: 10px; padding: 8px 2px 6px; cursor: pointer; text-align: center;
+      border: 2px solid #ddd; background: #fff; transition: all 0.15s;
+    }
+    .day-btn .lbl { font-size: 12px; font-weight: 700; color: #333; }
+    .day-btn .min { font-size: 11px; color: #999; margin-top: 2px; min-height: 14px; }
+    .day-btn .mark { font-size: 13px; min-height: 16px; }
+    .day-btn.has { border-color: #64af50; background: #eef7ea; }
+    .day-btn.done { border-color: #1f5f3a; background: #1f5f3a; }
+    .day-btn.done .lbl, .day-btn.done .min { color: #fff; }
+    .day-btn.open { box-shadow: 0 0 0 3px rgba(80,175,225,0.55); }
+
+    /* Panel */
+    .panel {
+      margin-top: 12px; background: #fff; border: 1px solid #e3e3e3;
+      border-radius: 14px; padding: 18px 16px; box-shadow: 0 2px 12px rgba(0,0,0,0.04);
+    }
+    .panel-head { display: flex; justify-content: space-between; align-items: flex-start; gap: 10px; }
+    .panel-title { font-size: 19px; font-weight: 700; }
+    .panel-sub { font-size: 13px; color: #777; margin-top: 2px; }
+    .btn {
+      border-radius: 8px; padding: 7px 12px; cursor: pointer; font-size: 13px; font-weight: 600;
+      border: 2px solid #1f5f3a; background: #fff; color: #1f5f3a; white-space: nowrap;
+    }
+    .btn.solid { background: #1f5f3a; color: #fff; }
+    .btn.ghost { border-color: #ddd; color: #777; }
+    .btn.danger { border-color: #f0c4c7; color: #af3c3c; }
+    .btn-row { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 14px; }
+
+    .total {
+      display: flex; align-items: baseline; gap: 8px; margin: 14px 0 6px;
+    }
+    .total .big { font-size: 30px; font-weight: 800; color: #1f5f3a; font-variant-numeric: tabular-nums; }
+    .total .txt { font-size: 13px; color: #777; }
+
+    .catbar { display: flex; height: 10px; border-radius: 99px; overflow: hidden; background: #eee; }
+    .catbar div { height: 100%; }
+    .legend { display: flex; flex-wrap: wrap; gap: 4px 12px; margin-top: 8px; font-size: 12px; color: #555; }
+    .legend span::before {
+      content: ""; display: inline-block; width: 9px; height: 9px; border-radius: 3px;
+      margin-right: 5px; background: var(--c);
+    }
+
+    .items { display: flex; flex-direction: column; gap: 8px; margin-top: 14px; }
+    .item {
+      background: #f7f7f7; border-radius: 10px; padding: 10px 10px 10px 12px;
+      border-left: 4px solid var(--c);
+    }
+    .item-row { display: flex; align-items: center; gap: 8px; }
+    .item-num { font-size: 12px; color: #999; width: 16px; }
+    .item-name { flex: 1; font-weight: 600; font-size: 15px; }
+    .item-tools { display: flex; align-items: center; gap: 2px; }
+    .icon-btn {
+      background: none; border: none; cursor: pointer; font-size: 15px;
+      width: 28px; height: 28px; border-radius: 6px; color: #555;
+    }
+    .icon-btn:hover { background: #e9e9e9; }
+    .icon-btn:disabled { opacity: 0.25; cursor: default; background: none; }
+    .item-meta { display: flex; align-items: center; gap: 8px; margin-top: 6px; padding-left: 24px; }
+    .stepper { display: flex; align-items: center; background: #fff; border: 1px solid #ddd; border-radius: 8px; }
+    .stepper button { background: none; border: none; width: 28px; height: 26px; cursor: pointer; font-size: 16px; color: #1f5f3a; }
+    .stepper span { min-width: 46px; text-align: center; font-size: 13px; font-weight: 700; font-variant-numeric: tabular-nums; }
+    .item-desc { font-size: 13px; color: #666; margin-top: 6px; padding-left: 24px; }
+
+    .badge {
+      display: inline-block; border-radius: 6px; padding: 1px 8px; font-size: 11px; font-weight: 700;
+      color: #fff; background: var(--c);
+    }
+
+    .empty { text-align: center; color: #888; font-size: 14px; padding: 18px 8px; }
+
+    textarea {
+      width: 100%; margin-top: 12px; border: 1px solid #ddd; border-radius: 8px; padding: 8px 10px;
+      font-family: inherit; font-size: 14px; resize: vertical; min-height: 54px;
+    }
+
+    /* Övningsbank */
+    .filters { display: flex; flex-wrap: wrap; gap: 6px; }
+    .chip {
+      border-radius: 99px; padding: 5px 12px; font-size: 13px; font-weight: 600; cursor: pointer;
+      border: 2px solid var(--c, #5e5e5e); background: #fff; color: var(--c, #5e5e5e);
+    }
+    .chip.active { background: var(--c, #5e5e5e); color: #fff; }
+    .search {
+      width: 100%; margin-top: 10px; border: 1px solid #ddd; border-radius: 10px;
+      padding: 9px 12px; font-size: 15px; font-family: inherit;
+    }
+    .bank { display: flex; flex-direction: column; gap: 8px; margin-top: 12px; }
+    .ex {
+      background: #fff; border: 1px solid #e3e3e3; border-left: 4px solid var(--c);
+      border-radius: 10px; padding: 12px;
+    }
+    .ex-row { display: flex; justify-content: space-between; align-items: flex-start; gap: 10px; }
+    .ex-name { font-weight: 700; font-size: 15px; }
+    .ex-info { font-size: 12px; color: #777; margin-top: 4px; display: flex; flex-wrap: wrap; gap: 6px; align-items: center; }
+    .ex-desc { font-size: 13px; color: #444; margin-top: 8px; line-height: 1.45; }
+    .ex-tip { font-size: 13px; color: #1f5f3a; margin-top: 6px; }
+    .ex-gear { font-size: 12px; color: #888; margin-top: 4px; }
+    .add-btn { flex-shrink: 0; }
+    .add-btn.added { background: #eef7ea; border-color: #64af50; color: #41965a; }
+
+    .picker-note {
+      position: sticky; top: 0; z-index: 5; background: #1f5f3a; color: #fff;
+      margin: 14px -16px 0; padding: 10px 16px; font-size: 13px;
+      display: flex; justify-content: space-between; align-items: center; gap: 8px;
+    }
+    .picker-note .btn { border-color: #fff; background: transparent; color: #fff; }
+
+    #toast {
+      position: fixed; left: 50%; bottom: 24px; transform: translateX(-50%) translateY(80px);
+      background: #1a1a1a; color: #fff; padding: 10px 16px; border-radius: 10px; font-size: 14px;
+      transition: transform 0.25s, opacity 0.25s; pointer-events: none; opacity: 0;
+    }
+    #toast.show { transform: translateX(-50%) translateY(0); opacity: 1; }
+
+    @media print {
+      #tabs, .btn-row, .item-tools, .stepper button, #toast { display: none !important; }
+      body { background: #fff; }
+    }
+  </style>
+</head>
+<body>
+
+<div id="header">
+  <div class="eyebrow">Träningsplanerare</div>
+  <h1>⚽ Fotbollsträning</h1>
+  <p>Övningar för 7–8 åringar · Planera veckans pass</p>
+</div>
+
+<div id="tabs">
+  <button class="tab active" data-tab="plan">Veckans pass</button>
+  <button class="tab" data-tab="bank">Övningar</button>
+</div>
+
+<div id="main"></div>
+<div id="toast"></div>
+
+<script>
+/* =====================================================================
+   KATEGORIER
+   Lägg till eller ändra kategorier här. "color" används i hela appen.
+   ===================================================================== */
+const categories = {
+  uppvarmning: { name: "Uppvärmning", color: "#e0a100" },
+  boll:        { name: "Bollövning",  color: "#64af50" },
+  passning:    { name: "Passning",    color: "#0091b9" },
+  skott:       { name: "Skott",       color: "#d7323c" },
+  fys:         { name: "Fys",         color: "#327da5" },
+  styrka:      { name: "Styrka & koordination", color: "#8a4fbf" },
+  spel:        { name: "Spel",        color: "#41965a" },
+  avslutning:  { name: "Avslutning",  color: "#5e5e5e" },
+};
+
+/* =====================================================================
+   ÖVNINGAR
+   Lägg till nya övningar genom att kopiera ett block och ändra.
+   - id:       unikt och får INTE ändras i efterhand (sparade pass pekar på id:t)
+   - category: en nyckel från "categories" ovan
+   - minutes:  förvald tid i minuter (kan justeras per pass)
+   ===================================================================== */
+const exercises = [
+  // --- Uppvärmning ---
+  { id:"tagen-boll", category:"uppvarmning", name:"Kullen med boll", minutes:8,
+    desc:"Alla dribblar sin boll inom en zon. 2–3 tagare utan boll försöker kulla. Den som blir kullad gör 5 tåtouch på bollen och är med igen.",
+    tip:"Byt tagare ofta så alla får springa.", gear:"1 boll/barn, koner" },
+  { id:"trafikljus", category:"uppvarmning", name:"Trafikljus", minutes:6,
+    desc:"Barnen dribblar fritt. Grön = dribbla, gul = sakta, röd = stoppa bollen med sulan. Lägg till egna färger, t.ex. blå = byt riktning.",
+    tip:"Låt barnen själva hitta på nya färger.", gear:"1 boll/barn" },
+  { id:"djurrorelser", category:"uppvarmning", name:"Djurrörelser", minutes:5,
+    desc:"Rörelser över planen: krabbgång, björngång, grodhopp, flamingo (stå på ett ben), kanin.",
+    tip:"Bra för koordination och tar ingen förberedelse.", gear:"Inget" },
+
+  // --- Bollövning ---
+  { id:"konslalom", category:"boll", name:"Konslalom", minutes:8,
+    desc:"Dribbla mellan 5–6 koner, först med höger fot, sedan vänster, sedan bara utsida.",
+    tip:"Små touch – bollen ska vara nära foten.", gear:"Koner, 1 boll/barn" },
+  { id:"sulrull", category:"boll", name:"Sulrullningar & tåtouch", minutes:5,
+    desc:"Stående teknik: tåtouch växelvis på bollen, rulla med sulan åt sidan, fram/tillbaka.",
+    tip:"Räkna högt tillsammans – blir en lek.", gear:"1 boll/barn" },
+  { id:"rovarboll", category:"boll", name:"Rövarboll", minutes:8,
+    desc:"Alla bollar i mitten. Fyra lag i varsitt hörn springer och hämtar en boll i taget hem. När mitten är tom får man ta från andra lag.",
+    tip:"Bara en boll i taget och den ska dribblas, inte bäras.", gear:"Många bollar, 4 koner-hem" },
+  { id:"vandningar", category:"boll", name:"Vändningar", minutes:8,
+    desc:"Dribbla mot en kon, vänd med insida, utsida eller sula och dribbla tillbaka. Tränaren ropar vilken vändning.",
+    tip:"Visa en vändning i taget.", gear:"Koner, 1 boll/barn" },
+
+  // --- Passning ---
+  { id:"parpass", category:"passning", name:"Passningar i par", minutes:8,
+    desc:"Två och två, 5–8 meter isär. Passa med insidan, ta emot och passa tillbaka. Byt fot efter 10 passningar.",
+    tip:"\"Stoppa, titta, passa\" – stödfoten pekar mot kompisen.", gear:"1 boll/par" },
+  { id:"passport", category:"passning", name:"Passa genom portar", minutes:8,
+    desc:"Många små portar (två koner) på planen. I par: passa genom så många portar som möjligt på 1 minut.",
+    tip:"Räkna poäng – barnen älskar att slå sitt eget rekord.", gear:"Många koner, 1 boll/par" },
+
+  // --- Skott ---
+  { id:"skott-mal", category:"skott", name:"Skott mot mål", minutes:10,
+    desc:"Kort dribbling runt en kon och avslut mot mål. Två köer, snabba byten.",
+    tip:"Max 3 i kö – annars står de för mycket.", gear:"Mål, koner, bollar" },
+  { id:"skjut-kon", category:"skott", name:"Skjut ner konen", minutes:8,
+    desc:"Koner eller tomma flaskor på en linje. Skjut från 5–6 meter och försök träffa.",
+    tip:"Fokus på att träffa, inte skjuta hårt.", gear:"Koner, bollar" },
+
+  // --- Fys ---
+  { id:"stafett", category:"fys", name:"Stafett", minutes:6,
+    desc:"Lag mot lag. Spring runt konen och tillbaka, ge \"high five\" till nästa. Variera: baklänges, sidled, med boll.",
+    tip:"Jämna lag och korta sträckor.", gear:"Koner" },
+  { id:"snabba-fotter", category:"fys", name:"Snabba fötter (stege)", minutes:6,
+    desc:"Snabba steg genom en stege eller konrad: en fot i varje ruta, två fötter, sidled.",
+    tip:"Kvalitet före fart.", gear:"Stege eller koner" },
+  { id:"reaktion", category:"fys", name:"Reaktionsstart", minutes:5,
+    desc:"Barnen ligger, sitter eller står med ryggen till. På signal: vänd och spurta 10 meter.",
+    tip:"Använd olika signaler – klapp, vissla, färg.", gear:"Koner" },
+
+  // --- Styrka & koordination ---
+  { id:"balans", category:"styrka", name:"Balansutmaning", minutes:5,
+    desc:"Stå på ett ben med foten på bollen, byt ben. Svårare: blunda, eller kasta en boll till varandra.",
+    tip:"Lekfullt – vem står längst?", gear:"1 boll/barn" },
+  { id:"skottkarra", category:"styrka", name:"Skottkärra & krabba", minutes:5,
+    desc:"Skottkärra i par 10 meter, byt. Sedan krabbgång med bollen på magen.",
+    tip:"Bygger bål- och armstyrka utan att det känns som styrketräning.", gear:"Bollar" },
+  { id:"hopp", category:"styrka", name:"Hoppa över bollen", minutes:5,
+    desc:"Hoppa jämfota fram och tillbaka över bollen, sedan i sidled, sedan på ett ben.",
+    tip:"Landa mjukt på framfoten.", gear:"1 boll/barn" },
+
+  // --- Spel ---
+  { id:"smaspel-3v3", category:"spel", name:"Smålagsspel 3 mot 3", minutes:15,
+    desc:"Små lag på liten plan med små mål. Många bollkontakter för alla.",
+    tip:"Låt dem spela – coacha lite och beröm mycket.", gear:"Små mål, västar" },
+  { id:"fyra-mal", category:"spel", name:"Spel mot fyra mål", minutes:12,
+    desc:"Två lag, varje lag anfaller två mål. Lär barnen att se var det finns ytor.",
+    tip:"Fråga: \"Var är det tomt?\"", gear:"4 små mål, västar" },
+  { id:"kungen", category:"spel", name:"Kungen på plätten", minutes:8,
+    desc:"Alla dribblar i en zon och försöker sparka ut andras bollar samtidigt som de skyddar sin egen. Den som åker ut gör ett uppdrag och är med igen.",
+    tip:"Ingen ska stå utanför länge.", gear:"1 boll/barn, koner" },
+
+  // --- Avslutning ---
+  { id:"straffar", category:"avslutning", name:"Straffläggning", minutes:5,
+    desc:"Alla får skjuta en straff. Tränaren eller ett barn står i mål.",
+    tip:"Ett roligt sätt att avsluta – alla får lyckas.", gear:"Mål, boll" },
+  { id:"stretch-ring", category:"avslutning", name:"Ring & stretch", minutes:5,
+    desc:"Samling i ring. Lätt stretch och varje barn säger något som var roligt idag.",
+    tip:"Avsluta med lagets ramsa.", gear:"Inget" },
+];
+
+/* =====================================================================
+   STATE & LAGRING (localStorage – sparas bara på den här enheten)
+   ===================================================================== */
+const STORAGE_KEY = "fotboll_veckopass";
+const weekdays = [
+  { key:"mon", short:"Mån", long:"Måndag" },
+  { key:"tue", short:"Tis", long:"Tisdag" },
+  { key:"wed", short:"Ons", long:"Onsdag" },
+  { key:"thu", short:"Tor", long:"Torsdag" },
+  { key:"fri", short:"Fre", long:"Fredag" },
+  { key:"sat", short:"Lör", long:"Lördag" },
+  { key:"sun", short:"Sön", long:"Söndag" },
+];
+const exById = Object.fromEntries(exercises.map(e => [e.id, e]));
+
+function load() {
+  try { return JSON.parse(localStorage.getItem(STORAGE_KEY)) || {}; } catch { return {}; }
+}
+function save() {
+  try { localStorage.setItem(STORAGE_KEY, JSON.stringify(plans)); } catch {}
+}
+
+// plans[dayKey] = { items: [{id, min}], done: bool, note: "" }
+let plans = load();
+let tab = "plan";
+let openDay = null;
+let pickerDay = null;        // när man lägger till övningar till en viss dag
+let filterCat = "alla";
+let search = "";
+
+function getPlan(day) {
+  if (!plans[day]) plans[day] = { items: [], done: false, note: "" };
+  return plans[day];
+}
+function validItems(day) {
+  return (plans[day]?.items || []).filter(it => exById[it.id]);
+}
+function totalMin(day) {
+  return validItems(day).reduce((s, it) => s + it.min, 0);
+}
+function todayKey() {
+  return weekdays[(new Date().getDay() + 6) % 7].key;
+}
+const esc = s => String(s).replace(/[&<>"']/g, c => ({ "&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;" }[c]));
+
+/* =====================================================================
+   RENDERING
+   ===================================================================== */
+function render() {
+  document.querySelectorAll(".tab").forEach(t => t.classList.toggle("active", t.dataset.tab === tab));
+  document.getElementById("main").innerHTML = tab === "plan" ? renderPlan() : renderBank();
+}
+
+function renderPlan() {
+  const today = todayKey();
+  let html = `<div class="section-label">Välj veckodag</div><div class="day-grid">`;
+  for (const d of weekdays) {
+    const p = plans[d.key];
+    const mins = totalMin(d.key);
+    const cls = ["day-btn"];
+    if (mins) cls.push("has");
+    if (p?.done) cls.push("done");
+    if (openDay === d.key) cls.push("open");
+    html += `<div class="${cls.join(" ")}" data-day="${d.key}">
+      <div class="lbl">${d.short}</div>
+      <div class="min">${mins ? mins + " min" : ""}</div>
+      <div class="mark">${p?.done ? "✓" : d.key === today ? "•" : ""}</div>
+    </div>`;
+  }
+  html += `</div>`;
+
+  if (openDay) html += renderDayPanel(openDay);
+  else html += `<div class="empty">Tryck på en veckodag för att skapa eller visa ett träningspass.</div>`;
+
+  html += renderWeekSummary();
+  return html;
+}
+
+function catBreakdown(items) {
+  const sums = {};
+  items.forEach(it => {
+    const c = exById[it.id].category;
+    sums[c] = (sums[c] || 0) + it.min;
+  });
+  return Object.keys(categories).filter(c => sums[c]).map(c => ({ c, min: sums[c] }));
+}
+
+function renderDayPanel(day) {
+  const d = weekdays.find(w => w.key === day);
+  const p = getPlan(day);
+  const items = validItems(day);
+  const total = items.reduce((s, it) => s + it.min, 0);
+
+  let html = `<div class="panel">
+    <div class="panel-head">
+      <div>
+        <div class="panel-title">${d.long}</div>
+        <div class="panel-sub">${items.length} övningar</div>
+      </div>
+      ${items.length ? `<button class="btn ${p.done ? "solid" : ""}" data-act="toggle-done">${p.done ? "✓ Genomfört" : "Markera genomfört"}</button>` : ""}
+    </div>`;
+
+  if (!items.length) {
+    html += `<div class="empty">Inga övningar än.<br>Lägg till från övningsbanken.</div>`;
+  } else {
+    const parts = catBreakdown(items);
+    html += `<div class="total"><span class="big">${total}</span><span class="txt">minuter totalt</span></div>
+      <div class="catbar">${parts.map(x => `<div style="width:${x.min / total * 100}%;background:${categories[x.c].color}"></div>`).join("")}</div>
+      <div class="legend">${parts.map(x => `<span style="--c:${categories[x.c].color}">${categories[x.c].name} ${x.min} min</span>`).join("")}</div>
+      <div class="items">`;
+    items.forEach((it, i) => {
+      const ex = exById[it.id];
+      const c = categories[ex.category];
+      html += `<div class="item" style="--c:${c.color}">
+        <div class="item-row">
+          <span class="item-num">${i + 1}</span>
+          <span class="item-name">${esc(ex.name)}</span>
+          <span class="item-tools">
+            <button class="icon-btn" data-act="up" data-i="${i}" ${i === 0 ? "disabled" : ""} title="Flytta upp">▲</button>
+            <button class="icon-btn" data-act="down" data-i="${i}" ${i === items.length - 1 ? "disabled" : ""} title="Flytta ner">▼</button>
+            <button class="icon-btn" data-act="remove" data-i="${i}" title="Ta bort">✕</button>
+          </span>
+        </div>
+        <div class="item-meta">
+          <span class="badge" style="--c:${c.color}">${c.name}</span>
+          <span class="stepper">
+            <button data-act="minus" data-i="${i}">−</button>
+            <span>${it.min} min</span>
+            <button data-act="plus" data-i="${i}">+</button>
+          </span>
+        </div>
+        <div class="item-desc">${esc(ex.desc)}</div>
+      </div>`;
+    });
+    html += `</div>`;
+  }
+
+  html += `<textarea data-act="note" placeholder="Anteckningar (t.ex. tid, plats, vilka som var med)">${esc(p.note || "")}</textarea>
+    <div class="btn-row">
+      <button class="btn solid" data-act="add">+ Lägg till övning</button>
+      ${items.length ? `<button class="btn" data-act="copy">Kopiera som text</button>
+      <button class="btn ghost" data-act="print">Skriv ut</button>
+      <button class="btn ghost" data-act="duplicate">Kopiera till dag…</button>
+      <button class="btn danger" data-act="clear">Töm passet</button>` : ""}
+    </div>
+  </div>`;
+  return html;
+}
+
+function renderWeekSummary() {
+  const days = weekdays.filter(d => totalMin(d.key));
+  if (!days.length) return "";
+  const total = days.reduce((s, d) => s + totalMin(d.key), 0);
+  const done = days.filter(d => plans[d.key]?.done).length;
+  return `<div class="section-label">Veckan</div>
+    <div class="panel">
+      <div class="total" style="margin-top:0"><span class="big">${total}</span><span class="txt">minuter planerat · ${done} av ${days.length} pass genomförda</span></div>
+      <div class="btn-row"><button class="btn danger" data-act="new-week">Ny vecka (nollställ markeringar)</button></div>
+    </div>`;
+}
+
+function renderBank() {
+  const q = search.trim().toLowerCase();
+  const list = exercises.filter(e =>
+    (filterCat === "alla" || e.category === filterCat) &&
+    (!q || (e.name + " " + e.desc).toLowerCase().includes(q))
+  );
+  const pickerItems = pickerDay ? validItems(pickerDay).map(it => it.id) : [];
+
+  let html = "";
+  if (pickerDay) {
+    const d = weekdays.find(w => w.key === pickerDay);
+    html += `<div class="picker-note">
+      <span>Lägger till i <strong>${d.long}</strong> · ${totalMin(pickerDay)} min</span>
+      <button class="btn" data-act="back">Klar</button>
+    </div>`;
+  }
+  html += `<div class="section-label">Kategorier</div><div class="filters">
+    <button class="chip ${filterCat === "alla" ? "active" : ""}" data-cat="alla">Alla (${exercises.length})</button>`;
+  for (const [k, c] of Object.entries(categories)) {
+    const n = exercises.filter(e => e.category === k).length;
+    if (!n) continue;
+    html += `<button class="chip ${filterCat === k ? "active" : ""}" style="--c:${c.color}" data-cat="${k}">${c.name} (${n})</button>`;
+  }
+  html += `</div>
+    <input class="search" type="search" placeholder="Sök övning…" value="${esc(search)}" data-act="search">
+    <div class="bank">`;
+
+  if (!list.length) html += `<div class="empty">Inga övningar matchar.</div>`;
+  for (const e of list) {
+    const c = categories[e.category];
+    const added = pickerItems.includes(e.id);
+    const target = pickerDay || openDay || todayKey();
+    const tLabel = weekdays.find(w => w.key === target).short;
+    html += `<div class="ex" style="--c:${c.color}">
+      <div class="ex-row">
+        <div>
+          <div class="ex-name">${esc(e.name)}</div>
+          <div class="ex-info"><span class="badge" style="--c:${c.color}">${c.name}</span> ⏱ ${e.minutes} min</div>
+        </div>
+        <button class="btn add-btn ${added ? "added" : ""}" data-add="${e.id}">${added ? "✓ Tillagd" : "+ " + tLabel}</button>
+      </div>
+      <div class="ex-desc">${esc(e.desc)}</div>
+      ${e.tip ? `<div class="ex-tip">💡 ${esc(e.tip)}</div>` : ""}
+      ${e.gear ? `<div class="ex-gear">Material: ${esc(e.gear)}</div>` : ""}
+    </div>`;
+  }
+  html += `</div>`;
+  return html;
+}
+
+/* =====================================================================
+   HÄNDELSER
+   ===================================================================== */
+function toast(msg) {
+  const t = document.getElementById("toast");
+  t.textContent = msg;
+  t.classList.add("show");
+  clearTimeout(toast.timer);
+  toast.timer = setTimeout(() => t.classList.remove("show"), 1800);
+}
+
+function planAsText(day) {
+  const d = weekdays.find(w => w.key === day);
+  const items = validItems(day);
+  const lines = [`⚽ Träning ${d.long} – ${totalMin(day)} min`, ""];
+  items.forEach((it, i) => {
+    const ex = exById[it.id];
+    lines.push(`${i + 1}. ${ex.name} (${it.min} min) – ${categories[ex.category].name}`);
+  });
+  if (plans[day].note) lines.push("", plans[day].note);
+  return lines.join("\n");
+}
+
+document.getElementById("tabs").addEventListener("click", e => {
+  const t = e.target.closest(".tab");
+  if (!t) return;
+  tab = t.dataset.tab;
+  if (tab === "plan") pickerDay = null;
+  render();
+  window.scrollTo(0, 0);
+});
+
+const main = document.getElementById("main");
+
+main.addEventListener("click", e => {
+  const dayBtn = e.target.closest(".day-btn");
+  if (dayBtn) {
+    openDay = openDay === dayBtn.dataset.day ? null : dayBtn.dataset.day;
+    return render();
+  }
+
+  const chip = e.target.closest(".chip");
+  if (chip) { filterCat = chip.dataset.cat; return render(); }
+
+  const addBtn = e.target.closest("[data-add]");
+  if (addBtn) {
+    const day = pickerDay || openDay || todayKey();
+    const p = getPlan(day);
+    const ex = exById[addBtn.dataset.add];
+    const idx = p.items.findIndex(it => it.id === ex.id);
+    if (idx >= 0) {
+      p.items.splice(idx, 1);
+      toast(`${ex.name} borttagen`);
+    } else {
+      p.items.push({ id: ex.id, min: ex.minutes });
+      toast(`${ex.name} tillagd · ${totalMin(day)} min`);
+    }
+    if (!pickerDay) pickerDay = day;
+    save();
+    return render();
+  }
+
+  const btn = e.target.closest("[data-act]");
+  if (!btn) return;
+  const act = btn.dataset.act;
+  const i = Number(btn.dataset.i);
+  const p = openDay ? getPlan(openDay) : null;
+  // Index i gäller listan med giltiga övningar – rensa bort okända id först
+  if (p) p.items = p.items.filter(it => exById[it.id]);
+
+  switch (act) {
+    case "toggle-done": p.done = !p.done; break;
+    case "up":     [p.items[i - 1], p.items[i]] = [p.items[i], p.items[i - 1]]; break;
+    case "down":   [p.items[i + 1], p.items[i]] = [p.items[i], p.items[i + 1]]; break;
+    case "remove": p.items.splice(i, 1); break;
+    case "minus":  p.items[i].min = Math.max(1, p.items[i].min - 1); break;
+    case "plus":   p.items[i].min = Math.min(90, p.items[i].min + 1); break;
+    case "add":
+      pickerDay = openDay; tab = "bank"; save(); render(); window.scrollTo(0, 0); return;
+    case "back":
+      openDay = pickerDay; pickerDay = null; tab = "plan"; render(); window.scrollTo(0, 0); return;
+    case "clear":
+      if (!confirm("Töm hela passet?")) return;
+      plans[openDay] = { items: [], done: false, note: "" }; break;
+    case "copy":
+      navigator.clipboard?.writeText(planAsText(openDay))
+        .then(() => toast("Passet kopierat"))
+        .catch(() => toast("Kunde inte kopiera"));
+      return;
+    case "print": window.print(); return;
+    case "duplicate": {
+      const names = weekdays.filter(w => w.key !== openDay).map(w => w.short).join(", ");
+      const ans = (prompt(`Kopiera till vilken dag? (${names})`) || "").trim().toLowerCase();
+      const target = weekdays.find(w => w.short.toLowerCase() === ans.slice(0, 3));
+      if (!target || target.key === openDay) { if (ans) toast("Okänd dag"); return; }
+      if (validItems(target.key).length && !confirm(`${target.long} har redan ett pass. Ersätt?`)) return;
+      plans[target.key] = { items: p.items.map(it => ({ ...it })), done: false, note: p.note || "" };
+      toast(`Kopierat till ${target.long}`);
+      break;
+    }
+    case "new-week":
+      if (!confirm("Nollställ alla \"genomfört\"-markeringar? Passen ligger kvar.")) return;
+      Object.values(plans).forEach(pl => pl.done = false); break;
+    default: return;
+  }
+  save();
+  render();
+});
+
+main.addEventListener("input", e => {
+  if (e.target.dataset.act === "note" && openDay) {
+    getPlan(openDay).note = e.target.value;
+    save();
+  }
+  if (e.target.dataset.act === "search") {
+    search = e.target.value;
+    const pos = e.target.selectionStart;
+    render();
+    const s = main.querySelector(".search");
+    s.focus();
+    s.setSelectionRange(pos, pos);
+  }
+});
+
+openDay = todayKey();
+render();
+
+if ("serviceWorker" in navigator) {
+  navigator.serviceWorker.register("sw.js").catch(() => {});
+}
+</script>
+</body>
+</html>

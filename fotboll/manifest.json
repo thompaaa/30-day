@@ -1,0 +1,13 @@
+{
+  "name": "Fotbollsträning – planerare",
+  "short_name": "Fotboll",
+  "description": "Planera fotbollsträningar för 7–8 åringar",
+  "start_url": "./",
+  "display": "standalone",
+  "background_color": "#f3f3f3",
+  "theme_color": "#1f5f3a",
+  "orientation": "portrait",
+  "icons": [
+    { "src": "icon.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any maskable" }
+  ]
+}
